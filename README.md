@@ -1,0 +1,1 @@
+# SPbPU-training-examples-BPMN

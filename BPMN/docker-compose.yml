@@ -1,0 +1,53 @@
+services:
+  camunda:
+    image: camunda/camunda-bpm-platform:7.21.0
+    container_name: bpmn-camunda
+    ports: ["8080:8080"]
+    networks: [bpmn]
+    environment:
+      - WAIT_FOR=localhost:8080
+      - DB_DRIVER=h2
+      - DB_USERNAME=sa
+      - DB_PASSWORD=
+      - DB_URL=jdbc:h2:mem:camunda
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 || exit 1'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 90s
+    restart: unless-stopped
+
+  orchestrator:
+    build: ./orchestrator
+    container_name: bpmn-orchestrator
+    environment:
+      - CAMUNDA_URL=http://camunda:8080/engine-rest
+      - CAMUNDA_USER=demo
+      - CAMUNDA_PASSWORD=demo
+    ports: ["8001:8000"]
+    networks: [bpmn]
+    depends_on:
+      camunda:
+        condition: service_healthy
+    restart: unless-stopped
+
+  controller:
+    build: ./controller
+    container_name: bpmn-controller
+    environment:
+      - CAMUNDA_URL=http://camunda:8080/engine-rest
+      - CAMUNDA_USER=demo
+      - CAMUNDA_PASSWORD=demo
+      - WORKER_TOPIC=do-work
+    ports: ["8002:8000"]
+    networks: [bpmn]
+    depends_on:
+      camunda:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  bpmn:
+    driver: bridge
+    name: bpmn

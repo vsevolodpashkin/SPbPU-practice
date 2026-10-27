@@ -10,6 +10,7 @@
 ## Программные решения и технологии
 - **Базы данных:** Postgres, NoSQL: Redis, Cassandra, MongoDb, neo4j
 - **Брокеры сообщений:** RabbitMQ, Kafka
+- **Бизнес-процессы:**: BPMN, Camunda
 - **Журналирование, аудит, мониторинг:** Prometheus, Grafana, ELK
 - **Безопасность**: Аутентификация, авторизация, подпись
 - **APIGateway**: Балансировка, Rate Limit 

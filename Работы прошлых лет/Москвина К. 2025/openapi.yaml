@@ -1,0 +1,206 @@
+openapi: 3.0.3
+info:
+  title: Task Management API
+  description: API системы управления задачами
+  version: 1.0.0
+paths:
+  /api/tasks:
+    get:
+      summary: Получение списка задач
+      description: |
+        Метод предназначен для получения списка задач пользователя.
+        Позволяет получить активные или завершённые задачи.
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Идентификатор пользователя
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ACTIVE, COMPLETED, REJECTED]
+          description: Статус задач
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Максимальное количество задач
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Смещение для постраничного вывода
+      responses:
+        '200':
+          description: Список задач успешно получен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    description: Список задач
+                    items:
+                      type: object
+                      properties:
+                        taskId:
+                          type: string
+                          description: Идентификатор задачи
+                        title:
+                          type: string
+                          description: Название задачи
+                        description:
+                          type: string
+                          description: Описание задачи
+                        status:
+                          type: string
+                          enum: [ACTIVE, COMPLETED, REJECTED]
+                          description: Статус задачи
+                        created_at:
+                          type: string
+                          format: date-time
+                          description: Дата создания задачи
+                        updated_at:
+                          type: string
+                          format: date-time
+                          nullable: true
+                          description: Дата завершения задачи
+                  limit:
+                    type: integer
+                    description: Применённый лимит
+                  offset:
+                    type: integer
+                    description: Применённое смещение
+                  total:
+                    type: integer
+                    description: Общее количество задач
+
+    post:
+      summary: Создание новой задачи
+      description: Метод предназначен для создания новой задачи.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                  description: Название задачи
+                description:
+                  type: string
+                  description: Описание задачи
+                assignees:
+                  type: array
+                  description: Список идентификаторов пользователей, назначенных на задачу
+                  items:
+                    type: string
+                mediaIds:
+                  type: array
+                  description: Список идентификаторов медиафайлов, прикреплённых к задаче
+                  items:
+                    type: string
+                updated_at:
+                  type: string
+                  format: date-time
+                  description: Дата последнего обновления
+      responses:
+        '201':
+          description: Задача успешно создана
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  taskId:
+                    type: string
+                    description: Идентификатор задачи
+                  title:
+                    type: string
+                    description: Название задачи
+                  description:
+                    type: string
+                    description: Описание задачи
+                  status:
+                    type: string
+                    enum: [ACTIVE, COMPLETED, REJECTED]
+                    description: Статус задачи
+                  created_at:
+                    type: string
+                    format: date-time
+                    description: Дата создания задачи
+  /api/tasks/{taskId}:
+    put:
+      summary: Обновление задачи
+      description: |
+        Метод предназначен для обновления задачи.
+        Позволяет редактировать данные задачи, а также переводить задачу
+        в статус "выполнена".
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Идентификатор задачи
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Название задачи
+                description:
+                  type: string
+                  description: Описание задачи
+                status:
+                  type: string
+                  enum: [ACTIVE, COMPLETED, REJECTED]
+                  description: Статус задачи
+      responses:
+        '200':
+          description: Задача успешно обновлена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  taskId:
+                    type: string
+                    description: Идентификатор задачи
+                  status:
+                    type: string
+                    enum: [ACTIVE, COMPLETED, REJECTED]
+                    description: Статус задачи
+                  updated_at:
+                    type: string
+                    format: date-time
+                    description: Дата последнего обновления
+
+        '409':
+          description: Конфликт версий. Задача была изменена другим пользователем
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorCode:
+                    type: string
+                    example: TASK_VERSION_CONFLICT
+                  message:
+                    type: string
+                    example: Задача была изменена другим пользователем. Обновите данные.
+
